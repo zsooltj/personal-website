@@ -1,164 +1,160 @@
-# Zsolt Apponyi - Portfolio Website (Next.js 13)
+# Zsolt Apponyi - Portfolio Website
 
-This is a Next.js 13 version of Zsolt Apponyi's portfolio website, featuring AI-powered components, interactive 3D elements, and modern animations.
+A modern, interactive portfolio website showcasing AI expertise and full-stack development skills. Built with Next.js 15, featuring dynamic 3D elements, AI-powered chatbot, and responsive design optimized for all devices.
 
 ## Features
 
-- **Next.js 13** with App Router
-- **TypeScript** for type safety
-- **Tailwind CSS** for styling
-- **Framer Motion** for animations
-- **Three.js** with React Three Fiber for 3D graphics
-- **Interactive 3D Cube** that responds to scroll
-- **Dynamic Theme System** with multiple color schemes
-- **MAXIMUM CHAOS Mode** 🔥💀🔥 (Developer Easter Egg)
-- **Responsive Design** optimized for all devices
-- **AI-focused Content** showcasing RAG systems and intelligent agents
+- **Interactive 3D Navigation** - Three.js cube that responds to scroll and section changes
+- **AI-Powered Chatbot** - Intelligent assistant with conversation starters and contextual responses
+- **Dynamic Theme System** - 7 color schemes (Neural, Matrix, Sunset, Cosmic, Alert, Cyber, Neon)
+- **Mobile-First Design** - Optimized for touch interactions with handedness detection
+- **Project Showcase** - Interactive project viewer with detailed case studies
+- **Animated Components** - Smooth transitions and micro-interactions throughout
+- **Contact Integration** - Working contact form with email API integration
 
 ## Tech Stack
 
-- Next.js 13 (App Router)
-- TypeScript
-- Tailwind CSS
-- Framer Motion
-- Three.js / React Three Fiber
-- React Three Drei
+- **Next.js** 15.3.2 (App Router)
+- **React** 19.1.0 with TypeScript 5.7.2
+- **Three.js** 0.176.0 with React Three Fiber 9.1.2
+- **Framer Motion** 12.15.0 for animations
+- **Tailwind CSS** 3.4.15 for styling
+- **Resend** 4.5.1 for email functionality
+
+## Key Components
+
+### Hero Section
+- Animated typing effect showcasing technical expertise
+- Interactive call-to-action buttons
+- Responsive layout with live preview elements
+
+### 3D Interactive Cube
+- Six-faced cube representing different portfolio sections
+- Smooth scroll-based animations and transitions
+- Dynamic lighting effects that respond to theme changes
+- Mobile-optimized with fallback for smaller screens
+
+### AI Assistant
+- Contextual chatbot with predefined conversation starters
+- Intelligent responses about skills, projects, and experience
+- Expandable chat interface with smooth animations
+
+### Project Viewer
+- Modal-based detailed project showcase
+- Image galleries with navigation
+- Technology badges and challenge descriptions
+- Live links to deployed projects
+
+### Dynamic Sections
+- **About** - Skills visualization with animated progress bars
+- **Projects** - Featured AI and full-stack projects
+- **Skills** - Categorized technical expertise
+- **Hobbies** - Interactive storytelling with mini-games
+- **Contact** - Working contact form with validation
+
+### Theme System
+- 7 distinct color schemes affecting entire site
+- CSS custom properties for consistent theming
+- Theme-responsive scrollbars and UI elements
+- Smooth transitions between themes
+
+## Project Highlights
+
+### Enterprise AI Solutions
+- **labIQ.io** - AI research platform with media analysis and transcription
+- **LEXHR.ai** - Legal AI assistant with document analysis
+- **CoreClarity.io** - Business intelligence with AI-driven insights
+- **HLB Global Insights** - Public chat widget with secure RAG ecosystem
+
+### Technical Achievements
+- Mobile-first responsive design with optimal UX
+- Interactive 3D elements optimized for performance
+- AI chatbot integration with contextual responses
+- Enterprise-grade security implementations
+- High-traffic application architecture
 
 ## Getting Started
 
 ### Prerequisites
-
-- Node.js 18+ 
+- Node.js 18+
 - npm or yarn
 
 ### Installation
 
-1. Navigate to the nextjs directory:
+1. Clone the repository
 ```bash
-cd nextjs
+git clone [repository-url]
+cd personal-website
 ```
 
-2. Install dependencies:
+2. Install dependencies
 ```bash
 npm install
 ```
 
-3. Run the development server:
+3. Run development server
 ```bash
 npm run dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+4. Open [http://localhost:3000](http://localhost:3000)
 
 ## Project Structure
 
 ```
-nextjs/
-├── src/
-│   ├── app/
-│   │   ├── globals.css          # Global styles with CSS variables
-│   │   ├── layout.tsx           # Root layout with metadata
-│   │   └── page.tsx             # Main page component
-│   ├── components/
-│   │   ├── AnimatedBackground.tsx    # Animated blob background
-│   │   ├── DynamicSection.tsx        # Content sections (About, Projects, etc.)
-│   │   ├── Hero.tsx                  # Hero section with code animation
-│   │   ├── ThreeJSCube.tsx          # Interactive 3D cube
-│   │   └── TopNavigation.tsx        # Navigation with chaos mode
-│   └── data/
-│       └── content.ts               # Portfolio content data
-├── tailwind.config.ts              # Tailwind configuration
-└── package.json
+src/
+├── app/
+│   ├── globals.css          # Global styles and CSS variables
+│   ├── layout.tsx           # Root layout with metadata
+│   ├── page.tsx             # Main page component
+│   └── api/contact/         # Contact form API endpoint
+├── components/
+│   ├── AIAssistant.tsx      # Intelligent chatbot component
+│   ├── AnimatedBackground.tsx # Dynamic blob background
+│   ├── DynamicSection.tsx   # Adaptive content sections
+│   ├── Hero.tsx             # Landing section with animations
+│   ├── ProjectViewer.tsx    # Modal project showcase
+│   ├── ThreeJSCube.tsx      # Interactive 3D navigation
+│   ├── TopNavigation.tsx    # Header with theme switcher
+│   ├── hobbies/             # Interactive hobby components
+│   └── sections/            # Individual section components
+├── data/
+│   └── content.ts           # Portfolio content and data
+└── hooks/
+    ├── useContactForm.ts    # Contact form logic
+    └── useHobbiesScroll.ts  # Hobby section interactions
 ```
 
-## Key Components
+## Customization
 
-### Hero Component
-- Animated code typing effect showing AI/frontend development humor
-- Interactive call-to-action buttons
-- Responsive layout with live code preview
-- Triggers the 3D cube animation
-
-### ThreeJSCube Component
-- Interactive 3D cube with text on each face representing different sections
-- Responds to scroll position and moves between sections
-- Smooth animations and transitions with dramatic entrance
-- Dynamic lighting effects that respond to theme changes
-
-### DynamicSection Component
-- Renders different content based on section ID
-- **About**: Skills grid with animated progress bars and experience timeline
-- **Projects**: AI-focused project showcase with technology badges
-- **Skills**: Categorized technical expertise with animated skill levels
-- **Contact**: Contact form and social links
-
-### TopNavigation Component
-- Sticky navigation with tab-style interface mimicking a code editor
-- Real-time clock display (hydration-safe)
-- Theme switcher with 7 different color schemes
-- Developer tools dropdown with:
-  - Color theme selector (Neural, Matrix, Sunset, Cosmic, Alert, Cyber, Neon)
-  - Edit mode toggle
-  - **MAXIMUM CHAOS Mode** 🔥💀🔥 (Epic visual effects)
-
-## Special Features
-
-### MAXIMUM CHAOS Mode 🔥💀🔥
-A hidden developer easter egg that creates complete visual mayhem:
-- Extreme page rotation and scaling
-- Insane color cycling with multiple filters
-- Random element shaking and displacement
-- Text scrambling with chaos symbols
-- Custom cursor madness
-- Screen flashes in random colors
-- Chaos audio symphony (if audio context available)
-- Epic completion message after 6 seconds
-
-### Theme System
-Dynamic color themes that affect the entire site:
-- **Neural** (Blue) - Default AI-focused theme
-- **Matrix** (Green) - Hacker/cyberpunk aesthetic
-- **Sunset** (Orange) - Warm, creative vibe
-- **Cosmic** (Purple) - Space/futuristic theme
-- **Alert** (Red) - High-energy, urgent feel
-- **Cyber** (Cyan) - Cool, tech-focused
-- **Neon** (Pink) - Vibrant, modern design
-
-### Responsive Design
-- Mobile-first approach
-- Optimized for all screen sizes
-- Touch-friendly interactions
-- Adaptive layouts for different devices
-
-## Content Customization
-
-Update the content in `src/data/content.ts` to customize:
+### Content Updates
+Edit `src/data/content.ts` to customize:
 - Personal information and bio
 - Project details and descriptions
 - Skills and experience data
 - Contact information and social links
 
-## Build and Deploy
+### Theme Customization
+Modify CSS custom properties in `src/app/globals.css` for:
+- Color schemes and palettes
+- Animation timings and effects
+- Typography and spacing
+- Component styling
 
-```bash
-# Build for production
-npm run build
-
-# Start production server
-npm start
-
-# Export static site (if needed)
-npm run export
-```
+### Component Configuration
+Individual components can be customized through:
+- Props and configuration objects
+- CSS classes and Tailwind utilities
+- Animation parameters and timing
 
 ## Performance Features
 
-- **Server-Side Rendering** with Next.js 13 App Router
-- **Optimized Images** and assets
-- **Code Splitting** for faster loading
-- **Responsive Design** for all devices
-- **SEO Optimized** with proper meta tags and structured data
-- **Hydration-safe** components to prevent SSR mismatches
+- **Server-Side Rendering** with Next.js App Router
+- **Code Splitting** for optimized loading
+- **Image Optimization** with Next.js Image component
+- **Mobile Performance** optimized 3D rendering
+- **SEO Optimization** with proper meta tags
+- **Hydration Safety** preventing SSR mismatches
 
 ## Browser Support
 
@@ -166,18 +162,7 @@ npm run export
 - Firefox (latest)
 - Safari (latest)
 - Edge (latest)
-
-## Development Notes
-
-- Uses TypeScript for type safety
-- Implements proper hydration handling for SSR
-- Custom CSS variables for dynamic theming
-- Framer Motion for smooth animations
-- Three.js integration with proper cleanup
-
-## License
-
-This project is for portfolio purposes. Please contact Zsolt Apponyi for usage permissions.
+- Mobile browsers (iOS Safari, Chrome Mobile)
 
 ## Contact
 
@@ -188,4 +173,4 @@ This project is for portfolio purposes. Please contact Zsolt Apponyi for usage p
 
 ---
 
-*Built with ❤️ and a lot of ☕ by Zsolt Apponyi*
+*Built with precision and passion by Zsolt Apponyi*
