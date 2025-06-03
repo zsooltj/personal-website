@@ -156,20 +156,6 @@ Individual components can be customized through:
 - **SEO Optimization** with proper meta tags
 - **Hydration Safety** preventing SSR mismatches
 
-## Browser Support
-
-- Chrome (latest)
-- Firefox (latest)
-- Safari (latest)
-- Edge (latest)
-- Mobile browsers (iOS Safari, Chrome Mobile)
-
-## Contact
-
-- **Email**: zsolt.apponyi@gmail.com
-- **Phone**: +36 30 574 4252
-- **LinkedIn**: [zsoltapp](https://www.linkedin.com/in/zsoltapp)
-- **Location**: Debrecen, Hungary
 
 ---
 
