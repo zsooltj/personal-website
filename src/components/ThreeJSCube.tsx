@@ -87,7 +87,72 @@ interface DynamicCubeProps {
   sections: Section[];
   currentSection: string;
   isInitializing?: boolean;
+  isMobile?: boolean;
+  isWeakDevice?: boolean;
 }
+
+// Static Cube Component for weak devices - no animations
+const StaticCube: React.FC<DynamicCubeProps> = ({ sections, currentSection }) => {
+  const groupRef = useRef<THREE.Group>(null);
+
+  // Set static position based on current section
+  useEffect(() => {
+    if (groupRef.current) {
+      const sectionIndex = sections.findIndex(section => section.id === currentSection);
+      const positions: [number, number, number][] = [
+        [0, -1, 0],    // Hero - center
+        [-8, 0, 0],    // About - left
+        [8, 0, 0],     // Projects - right
+        [-8, 0, 0],    // Skills - left
+        [-10, 0, 0],   // Hobbies - left
+        [8, 0, 0],     // Contact - right
+      ];
+      
+      const rotations: [number, number, number][] = [
+        [Math.PI * 0.07, Math.PI * -0.1, 0],
+        [0, -Math.PI / 2, 0],
+        [0, Math.PI, 0],
+        [0, Math.PI / 2, 0],
+        [Math.PI / 2.5, -0.1, Math.PI],
+        [-Math.PI / 2.4, -Math.PI / 1, 0],
+      ];
+      
+      const position = positions[sectionIndex] || [0, 0, 0];
+      const rotation = rotations[sectionIndex] || [0, 0, 0];
+      
+      // Set position and rotation directly without animation
+      groupRef.current.position.set(position[0], position[1], position[2]);
+      groupRef.current.rotation.set(rotation[0], rotation[1], rotation[2]);
+      groupRef.current.scale.set(0.8, 0.8, 0.8); // Smaller static size
+    }
+  }, [currentSection, sections]);
+
+  return (
+    <group ref={groupRef}>
+      <RoundedBox args={[6, 6, 6]} radius={0.3} smoothness={1} position={[0, 0, 0]}>
+        <meshBasicMaterial
+          color="#ffffff"
+          transparent={true}
+          opacity={0.3}
+        />
+      </RoundedBox>
+      
+      {/* Static text on front face only */}
+      <Text
+        position={[0, 0, 3.1]}
+        rotation={[0, 0, 0]}
+        fontSize={1.2}
+        anchorX="center"
+        anchorY="middle"
+        maxWidth={6}
+        textAlign="center"
+      >
+        {sections.find(s => s.id === currentSection)?.name.toUpperCase() || 'PORTFOLIO'}
+        <meshBasicMaterial color="#38bdf8" />
+      </Text>
+    </group>
+  );
+};
 
 // Rubik Cube Face Component - creates a 3x3 grid of tiles on a face
 const RubikFace: React.FC<{ 
@@ -95,7 +160,8 @@ const RubikFace: React.FC<{
   rotation: [number, number, number];
   opacity: number;
   faceColors: string[];
-}> = ({ position, rotation, opacity, faceColors }) => {
+  isMobile?: boolean;
+}> = ({ position, rotation, opacity, faceColors, isMobile = false }) => {
   return (
     <group position={position} rotation={rotation}>
       {/* 3x3 grid of tiles */}
@@ -111,15 +177,24 @@ const RubikFace: React.FC<{
             position={[x, y, 0.01]} // Slightly above the cube surface
           >
             <planeGeometry args={[1.6, 1.6]} />
-            <meshPhysicalMaterial
-              color={faceColors[i]}
-              roughness={0.1}
-              metalness={0.0}
-              clearcoat={0.9}
-              clearcoatRoughness={0.1}
-              transparent={true}
-              opacity={opacity}
-            />
+            {/* Use simpler material on mobile for better performance */}
+            {isMobile ? (
+              <meshBasicMaterial
+                color={faceColors[i]}
+                transparent={true}
+                opacity={opacity}
+              />
+            ) : (
+              <meshPhysicalMaterial
+                color={faceColors[i]}
+                roughness={0.1}
+                metalness={0.0}
+                clearcoat={0.9}
+                clearcoatRoughness={0.1}
+                transparent={true}
+                opacity={opacity}
+              />
+            )}
           </mesh>
         );
       })}
@@ -127,7 +202,7 @@ const RubikFace: React.FC<{
   );
 };
 
-const DynamicCube: React.FC<DynamicCubeProps> = ({ sections, currentSection, isInitializing = false }) => {
+const DynamicCube: React.FC<DynamicCubeProps> = ({ sections, currentSection, isInitializing = false, isMobile = false }) => {
   const groupRef = useRef<THREE.Group>(null);
   const [targetPosition, setTargetPosition] = useState<[number, number, number]>([0, 0, 0]);
   const [targetRotation, setTargetRotation] = useState<[number, number, number]>([0, 0, 0]);
@@ -183,14 +258,22 @@ const DynamicCube: React.FC<DynamicCubeProps> = ({ sections, currentSection, isI
   }, [currentSection, sections]);
 
   useEffect(() => {
+    let ticking = false;
+    
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      const scrollDelta = currentScrollY - lastScrollY;
-      setScrollRotation(prev => prev + scrollDelta * 0.00005);
-      setLastScrollY(currentScrollY);
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const currentScrollY = window.scrollY;
+          const scrollDelta = currentScrollY - lastScrollY;
+          setScrollRotation(prev => prev + scrollDelta * 0.00005);
+          setLastScrollY(currentScrollY);
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY]);
 
@@ -290,14 +373,16 @@ const DynamicCube: React.FC<DynamicCubeProps> = ({ sections, currentSection, isI
         />
       </RoundedBox>
       
-      {/* Puzzle Cube Faces */}
-      <>
+      {/* Puzzle Cube Faces - Always show on desktop */}
+      {(
+        <>
           {/* Front face - Colorful puzzle pieces */}
           <RubikFace
             position={[0, 0, 3.1]}
             rotation={[0, 0, 0]}
             opacity={tilesOpacity}
             faceColors={['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3', '#54a0ff', '#5f27cd', '#00d2d3']}
+            isMobile={isMobile}
           />
           
           {/* Right face - Warm puzzle colors */}
@@ -306,6 +391,7 @@ const DynamicCube: React.FC<DynamicCubeProps> = ({ sections, currentSection, isI
             rotation={[0, Math.PI/2, 0]}
             opacity={tilesOpacity}
             faceColors={['#ff9f43', '#feca57', '#ff6348', '#ff7675', '#fd79a8', '#fdcb6e', '#e17055', '#d63031', '#74b9ff']}
+            isMobile={isMobile}
           />
           
           {/* Back face - Cool puzzle colors */}
@@ -314,6 +400,7 @@ const DynamicCube: React.FC<DynamicCubeProps> = ({ sections, currentSection, isI
             rotation={[0, Math.PI, 0]}
             opacity={tilesOpacity}
             faceColors={['#0984e3', '#74b9ff', '#00b894', '#00cec9', '#6c5ce7', '#a29bfe', '#fd79a8', '#e84393', '#2d3436']}
+            isMobile={isMobile}
           />
           
           {/* Left face - Nature puzzle colors */}
@@ -322,6 +409,7 @@ const DynamicCube: React.FC<DynamicCubeProps> = ({ sections, currentSection, isI
             rotation={[0, -Math.PI/2, 0]}
             opacity={tilesOpacity}
             faceColors={['#00b894', '#55a3ff', '#26de81', '#2bcbba', '#45aaf2', '#a55eea', '#778ca3', '#4b6584', '#f8b500']}
+            isMobile={isMobile}
           />
           
           {/* Top face - Bright puzzle colors */}
@@ -330,6 +418,7 @@ const DynamicCube: React.FC<DynamicCubeProps> = ({ sections, currentSection, isI
             rotation={[-Math.PI/2, 0, 0]}
             opacity={tilesOpacity}
             faceColors={['#ffeaa7', '#fab1a0', '#ff7675', '#fd79a8', '#fdcb6e', '#e17055', '#74b9ff', '#0984e3', '#00b894']}
+            isMobile={isMobile}
           />
           
           {/* Bottom face - Mixed puzzle colors */}
@@ -338,8 +427,10 @@ const DynamicCube: React.FC<DynamicCubeProps> = ({ sections, currentSection, isI
             rotation={[Math.PI/2, 0, 0]}
             opacity={tilesOpacity}
             faceColors={['#a29bfe', '#6c5ce7', '#fd79a8', '#e84393', '#00cec9', '#55a3ff', '#26de81', '#feca57', '#ff6348']}
+            isMobile={isMobile}
           />
         </>
+      )}
 
       {/* Text on each face of the cube */}
       {sections.map((section, index) => {
@@ -378,81 +469,52 @@ const DynamicCube: React.FC<DynamicCubeProps> = ({ sections, currentSection, isI
   );
 };
 
-const ThreeJSCube: React.FC<ThreeJSCubeProps> = ({ sections, showCube = false }) => {
+interface ThreeJSCubeProps {
+  sections: Section[];
+  showCube?: boolean;
+  currentSection?: string;
+}
+
+const ThreeJSCube: React.FC<ThreeJSCubeProps> = ({ sections, showCube = false, currentSection = 'hero' }) => {
   const [isInitializing, setIsInitializing] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isWeakDevice, setIsWeakDevice] = useState(false);
+  
+  // Detect mobile devices and weak devices for performance optimization
+  useEffect(() => {
+    const checkDevice = () => {
+      const userAgent = navigator.userAgent.toLowerCase();
+      const isMobileDevice = /iphone|ipad|ipod|android|blackberry|mini|windows\sce|palm/i.test(userAgent) || window.innerWidth < 1024;
+      
+      // Detect weak devices
+      const isWeakDevice = 
+        // Old iOS devices
+        /iphone [5-9]|ipad [2-5]|ipod/i.test(userAgent) ||
+        // Low-end Android devices
+        /android [4-7]/i.test(userAgent) ||
+        // Low memory devices (if available)
+        // Low CPU core count (if available)
+        (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2) ||
+        // Small screens (likely low-end devices)
+        (window.innerWidth <= 1020);
+      
+      setIsMobile(isMobileDevice);
+      setIsWeakDevice(isWeakDevice);
+    };
+    checkDevice();
+    window.addEventListener('resize', checkDevice);
+    return () => window.removeEventListener('resize', checkDevice);
+  }, []);
   
   useEffect(() => {
     if (showCube && !isInitializing) {
       setIsInitializing(true);
     }
   }, [showCube, isInitializing]);
-  
-  const [currentSection, setCurrentSection] = useState('hero');
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const windowHeight = window.innerHeight;
-      
-      // Find the section that's most visible in the viewport
-      let currentSectionId = 'hero';
-      let maxVisibility = 0;
-      
-      sections.forEach((section) => {
-        const element = document.getElementById(section.id);
-        if (element) {
-          const rect = element.getBoundingClientRect();
-          const elementTop = rect.top;
-          const elementBottom = rect.bottom;
-          const elementHeight = rect.height;
-          
-          // Calculate how much of the element is visible
-          const visibleTop = Math.max(0, Math.min(elementBottom, windowHeight) - Math.max(elementTop, 0));
-          const visibilityRatio = visibleTop / elementHeight;
-          
-          // Also consider if the element is near the center of the viewport
-          const centerDistance = Math.abs((elementTop + elementBottom) / 2 - windowHeight / 2);
-          const centerWeight = Math.max(0, 1 - centerDistance / windowHeight);
-          
-          const totalScore = visibilityRatio * 0.7 + centerWeight * 0.3;
-          
-          if (totalScore > maxVisibility) {
-            maxVisibility = totalScore;
-            currentSectionId = section.id;
-          }
-        }
-      });
-      
-      setCurrentSection(currentSectionId);
-    };
-
-    // Initial call
-    handleScroll();
-    
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [sections]);
-
-  if (!showCube) {
-    return (
-      <div className="fixed inset-0 pointer-events-none z-5 flex items-center justify-center">
-        <div className="bg-dark-800/80 backdrop-blur-md rounded-lg p-6 border border-dark-700 max-w-md">
-          <div className="text-center space-y-4">
-            <div className="w-16 h-16 mx-auto bg-gradient-to-br from-primary-400/20 to-secondary-400/20 rounded-full flex items-center justify-center border border-primary-400/30">
-              <span className="text-2xl">⏳</span>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-dark-100 mb-2">Initializing the System</h3>
-              <p className="text-dark-400 text-sm">Waiting for cube.start() command...</p>
-            </div>
-            <div className="flex justify-center space-x-1">
-              <div className="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-              <div className="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-              <div className="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+  // Hide cube completely on mobile devices or if not shown
+  if (!showCube || isMobile) {
+    return null;
   }
 
   return (
@@ -460,23 +522,71 @@ const ThreeJSCube: React.FC<ThreeJSCubeProps> = ({ sections, showCube = false })
       <Canvas 
         camera={{ position: [0, 0, 20], fov: 50 }}
         style={{ background: 'transparent' }}
+        gl={{
+          // Mobile optimizations
+          antialias: !isMobile, // Disable antialiasing on mobile
+          alpha: true,
+          powerPreference: isMobile ? 'low-power' : 'high-performance',
+          stencil: false,
+          depth: true,
+          preserveDrawingBuffer: false,
+          failIfMajorPerformanceCaveat: false,
+          // Reduce pixel ratio on mobile for better performance
+          pixelRatio: isMobile ? Math.min(window.devicePixelRatio, 1.5) : window.devicePixelRatio
+        }}
+        frameloop={isMobile || isWeakDevice ? "demand" : "always"} // Limit rendering on mobile and weak devices
+        performance={{
+          min: isMobile || isWeakDevice ? 0.1 : 0.5, // Even lower threshold for weak devices
+          max: 1,
+          debounce: isWeakDevice ? 500 : 200 // Longer debounce for weak devices
+        }}
       >
-        <ambientLight intensity={0.4} />
-        <pointLight position={[3, 3, 3]} intensity={2.0} color="#ffffff" />
-        <pointLight position={[-3, 3, 3]} intensity={1.8} color={typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--primary-400').trim() || '#38bdf8' : '#38bdf8'} />
-        <pointLight position={[3, -3, 3]} intensity={1.5} color={typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--secondary-400').trim() || '#d946ef' : '#d946ef'} />
-        <pointLight position={[0, 0, 8]} intensity={2.5} color="#ffffff" />
-        <directionalLight position={[2, 5, 3]} intensity={1.2} color="#ffffff" castShadow />
-        <spotLight
-          position={[0, 6, 6]}
-          angle={0.4}
-          penumbra={0.3}
-          intensity={3.0}
-          color="#ffffff"
-          target-position={[0, 0, 0]}
-          castShadow
-        />
-        <DynamicCube sections={sections} currentSection={currentSection} isInitializing={isInitializing} />
+        {/* Ultra-simplified lighting for weak devices */}
+        {isWeakDevice ? (
+          <ambientLight intensity={0.8} />
+        ) : isMobile ? (
+          <>
+            <ambientLight intensity={0.6} />
+            <directionalLight position={[5, 5, 5]} intensity={0.8} />
+          </>
+        ) : (
+          <>
+            <ambientLight intensity={0.4} />
+            <pointLight position={[3, 3, 3]} intensity={2.0} color="#ffffff" />
+            <pointLight position={[-3, 3, 3]} intensity={1.8} color={typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--primary-400').trim() || '#38bdf8' : '#38bdf8'} />
+            <pointLight position={[3, -3, 3]} intensity={1.5} color={typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--secondary-400').trim() || '#d946ef' : '#d946ef'} />
+            <pointLight position={[0, 0, 8]} intensity={2.5} color="#ffffff" />
+            <directionalLight position={[2, 5, 3]} intensity={1.2} color="#ffffff" castShadow />
+            <spotLight
+              position={[0, 6, 6]}
+              angle={0.4}
+              penumbra={0.3}
+              intensity={3.0}
+              color="#ffffff"
+              target-position={[0, 0, 0]}
+              castShadow
+            />
+          </>
+        )}
+        
+        {/* Use StaticCube for weak devices, DynamicCube for others */}
+        {isWeakDevice ? (
+          <StaticCube 
+            sections={sections} 
+            currentSection={currentSection} 
+            isInitializing={false} 
+            isMobile={isMobile}
+            isWeakDevice={isWeakDevice}
+          />
+        ) : (
+          <DynamicCube 
+            sections={sections} 
+            currentSection={currentSection} 
+            isInitializing={isInitializing} 
+            isMobile={isMobile}
+            isWeakDevice={isWeakDevice}
+          />
+        )}
       </Canvas>
     </div>
   );

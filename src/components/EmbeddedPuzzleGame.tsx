@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 
 interface EmbeddedPuzzleGameProps {
@@ -13,24 +13,43 @@ const EmbeddedPuzzleGame: React.FC<EmbeddedPuzzleGameProps> = ({ isActive }) => 
   const [isComplete, setIsComplete] = useState(false);
   const [startTime, setStartTime] = useState<number>(0);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [hasInitialized, setHasInitialized] = useState(false);
+  
+  // Use ref to track timer to prevent rerenders
+  const timerRef = useRef<NodeJS.Timeout>();
 
-  // Initialize puzzle
+  // Initialize puzzle only once when becoming active
   useEffect(() => {
-    if (isActive) {
+    if (isActive && !hasInitialized) {
       initializePuzzle();
       setStartTime(Date.now());
+      setHasInitialized(true);
     }
-  }, [isActive]);
+  }, [isActive, hasInitialized]);
 
-  // Timer
+  // Optimized timer that only updates when necessary
   useEffect(() => {
-    let interval: NodeJS.Timeout;
     if (isActive && !isComplete && startTime > 0) {
-      interval = setInterval(() => {
+      // Clear any existing timer
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+      
+      // Only update timer every 5 seconds to reduce rerenders
+      timerRef.current = setInterval(() => {
         setElapsedTime(Math.floor((Date.now() - startTime) / 1000));
-      }, 1000);
+      }, 5000);
+    } else {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
     }
-    return () => clearInterval(interval);
+    
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
   }, [isActive, isComplete, startTime]);
 
   const initializePuzzle = () => {
@@ -155,11 +174,11 @@ const EmbeddedPuzzleGame: React.FC<EmbeddedPuzzleGameProps> = ({ isActive }) => 
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
-          🔄 New Game
+          New Game
         </motion.button>
       </div>
     </div>
   );
 };
 
-export default EmbeddedPuzzleGame;
+export default React.memo(EmbeddedPuzzleGame);

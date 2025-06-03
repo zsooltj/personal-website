@@ -46,7 +46,7 @@
 .to-secondary-500 { --tw-gradient-to: var(--secondary-500) !important; }
 .from-secondary-400 { --tw-gradient-from: var(--secondary-400) !important; }
 .from-secondary-500 { --tw-gradient-from: var(--secondary-500) !important; }
-
+.text-secondary-400 { color: var(--secondary-400) !important; }
 /* Hover states */
 .hover\:bg-primary-600:hover { background-color: hsl(var(--primary-hue), 70%, 40%) !important; }
 

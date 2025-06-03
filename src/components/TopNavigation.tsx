@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface TopNavigationProps {
@@ -50,47 +50,70 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ onToggleAI }) => {
     };
   }, []);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      setScrollY(currentScrollY);
+  const handleScroll = useCallback(() => {
+    const currentScrollY = window.scrollY;
+    
+    // Only update if scroll position changed significantly
+    if (Math.abs(currentScrollY - scrollY) < 5) return;
+    
+    setScrollY(currentScrollY);
+    
+    // Hide header when scrolled down more than 60px
+    const shouldHideHeader = currentScrollY > 60;
+    if (shouldHideHeader !== isHeaderHidden) {
+      setIsHeaderHidden(shouldHideHeader);
+    }
+    
+    // Mobile-specific navigation hiding
+    if (isMobile) {
+      const scrollDifference = currentScrollY - lastScrollY;
       
-      // Hide header when scrolled down more than 60px
-      setIsHeaderHidden(currentScrollY > 60);
-      
-      // Mobile-specific navigation hiding
-      if (isMobile) {
-        const scrollDifference = currentScrollY - lastScrollY;
-        
-        // Close mobile menu when scrolling down 50px or more (even if nav is still visible)
-        if (currentScrollY > 50 && scrollDifference > 0 && isMobileMenuOpen) {
-          setIsMobileMenuOpen(false);
-        }
-        
-        // Keep nav always visible - removed auto-hide behavior
-        
-        setLastScrollY(currentScrollY);
+      // Close mobile menu when scrolling down 50px or more
+      if (currentScrollY > 50 && scrollDifference > 0 && isMobileMenuOpen) {
+        setIsMobileMenuOpen(false);
       }
       
-      const sections = ['hero', 'about', 'projects', 'skills', 'hobbies', 'contact'];
-      const scrollPosition = currentScrollY + 100;
-      
-      for (const sectionId of sections) {
-        const element = document.getElementById(sectionId);
-        if (element) {
-          const { offsetTop, offsetHeight } = element;
-          if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
+      setLastScrollY(currentScrollY);
+    }
+    
+    // Section detection - only check if scroll position changed significantly
+    const sections = ['hero', 'about', 'projects', 'skills', 'hobbies', 'contact'];
+    const scrollPosition = currentScrollY + 100;
+    
+    for (const sectionId of sections) {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        const { offsetTop, offsetHeight } = element;
+        if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
+          if (activeTab !== sectionId) {
             setActiveTab(sectionId);
-            break;
           }
+          break;
         }
+      }
+    }
+  }, [scrollY, isHeaderHidden, isMobile, lastScrollY, isMobileMenuOpen, activeTab]);
+
+  // Throttled scroll handler
+  const throttledScrollHandler = useCallback(() => {
+    let ticking = false;
+    
+    return () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          handleScroll();
+          ticking = false;
+        });
+        ticking = true;
       }
     };
+  }, [handleScroll])();
 
-    window.addEventListener('scroll', handleScroll);
+  useEffect(() => {
+    window.addEventListener('scroll', throttledScrollHandler, { passive: true });
     handleScroll(); // Initial check
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [isMobile, isMobileMenuOpen, lastScrollY]);
+    return () => window.removeEventListener('scroll', throttledScrollHandler);
+  }, [throttledScrollHandler, handleScroll]);
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
@@ -224,7 +247,7 @@ const TopNavigation: React.FC<TopNavigationProps> = ({ onToggleAI }) => {
                     zsolt.app
                   </motion.span>
                   <motion.span 
-                    className="text-secondary-400"
+                    className=" text-secondary-400"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.6, duration: 0.4 }}
