@@ -171,6 +171,7 @@ export const portfolioContent = {
         skills: [
           { name: "React", level: 95 },
           { name: "Vue.js", level: 92 },
+          { name: 'Angular', experiencePercent: 60 },
           { name: "JavaScript/ES6+", level: 93 },
           { name: "TypeScript", level: 88 },
           { name: "CSS/SCSS", level: 90 }
@@ -183,6 +184,7 @@ export const portfolioContent = {
           { name: "Node.js", level: 92 },
           { name: "Python", level: 90 },
           { name: "Laravel", level: 88 },
+          { name: "Java", level: 62 },
           { name: "PostgreSQL", level: 85 },
           { name: "Redis", level: 82 }
         ]
